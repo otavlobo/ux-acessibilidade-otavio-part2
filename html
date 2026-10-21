@@ -1,0 +1,215 @@
+<!-- Canvas do fundo tridimensional -->
+<canvas id="bg-3d"></canvas>
+
+<!-- Overlay gradiente de iluminação suave -->
+<div class="bg-overlay"></div>
+
+<!-- Conteúdo principal -->
+<header class="cabecalho">
+    <h1>Vida Segura</h1>
+    <p>Dicas simples para o seu bem-estar</p>
+</header>
+
+<main class="conteudo">
+    <section class="cartao-dica">
+        <div class="icone" aria-hidden="true">🏠</div>
+        <h2>Segurança na Casa</h2>
+        <ul>
+            <li><strong>Evite tapetes soltos:</strong> Use modelos emborrachados e antiderrapantes.</li>
+            <li><strong>Iluminação:</strong> Mantenha corredores e o caminho até o banheiro bem iluminados à noite.</li>
+            <li><strong>Banheiro seguro:</strong> Instale barras de apoio ao lado do vaso e dentro do box.</li>
+        </ul>
+    </section>
+
+    <section class="cartao-dica">
+        <div class="icone" aria-hidden="true">💊</div>
+        <h2>Uso de Medicamentos</h2>
+        <ul>
+            <li><strong>Organização:</strong> Utilize caixas organizadoras de remédios separadas por dias da semana.</li>
+            <li><strong>Horários:</strong> Anote os horários em um relógio de parede ou quadro visível.</li>
+            <li><strong>Receitas:</strong> Mantenha a lista de remédios atualizada perto da porta.</li>
+        </ul>
+    </section>
+
+    <section class="cartao-dica">
+        <div class="icone" aria-hidden="true">🚶♂️</div>
+        <h2>Cuidados na Rua</h2>
+        <ul>
+            <li><strong>Calçados:</strong> Use sapatos fechados e com solado de borracha.</li>
+            <li><strong>Atenção:</strong> Olhe sempre onde pisa e prefira calçadas retas e sem buracos.</li>
+            <li><strong>Documentos:</strong> Leve sempre um documento de identificação e um telefone de contato de emergência.</li>
+        </ul>
+    </section>
+</main>
+
+<footer class="rodape">
+    <button class="botao-emergencia" onclick="window.location.href='tel:192'">
+        Ligar para Emergência (192)
+    </button>
+</footer>
+
+<!-- Script de Inicialização da Cena 3D -->
+<script>
+    // Configuração da Cena 3D
+    const canvas = document.getElementById('bg-3d');
+    const scene = new THREE.Scene();
+    
+    // Adicionar névoa de profundidade
+    scene.fog = new THREE.FogExp2(0x0c1327, 0.025);
+
+    const camera = new THREE.PerspectiveCamera(
+        60, 
+        window.innerWidth / window.innerHeight, 
+        0.1, 
+        1000
+    );
+    camera.position.z = 30;
+
+    const renderer = new THREE.WebGLRenderer({ 
+        canvas: canvas, 
+        antialias: true,
+        alpha: true 
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0x00d2ff, 1.2);
+    dirLight1.position.set(20, 20, 20);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x3a7bd5, 1.0);
+    dirLight2.position.set(-20, -20, -10);
+    scene.add(dirLight2);
+
+    const pointLight = new THREE.PointLight(0xffffff, 0.8, 50);
+    pointLight.position.set(0, 0, 15);
+    scene.add(pointLight);
+
+    // Materiais 3D com efeito suave e semitransparente
+    const materials = [
+        new THREE.MeshStandardMaterial({
+            color: 0x00d2ff,
+            roughness: 0.2,
+            metalness: 0.5,
+            transparent: true,
+            opacity: 0.85
+        }),
+        new THREE.MeshStandardMaterial({
+            color: 0x3a7bd5,
+            roughness: 0.3,
+            metalness: 0.4,
+            transparent: true,
+            opacity: 0.8
+        }),
+        new THREE.MeshPhysicalMaterial({
+            color: 0x64b5f6,
+            roughness: 0.1,
+            transmission: 0.6,
+            thickness: 1.2,
+            transparent: true,
+            opacity: 0.9
+        })
+    ];
+
+    // Geometrias diversas
+    const geometries = [
+        new THREE.TorusGeometry(2, 0.7, 16, 50),
+        new THREE.IcosahedronGeometry(2, 0),
+        new THREE.OctahedronGeometry(2.2, 0),
+        new THREE.SphereGeometry(1.8, 32, 32),
+        new THREE.TorusKnotGeometry(1.5, 0.4, 64, 16)
+    ];
+
+    // Criar grupo de objetos animados
+    const objectsGroup = new THREE.Group();
+    const objectsData = [];
+    const count = 35;
+
+    for (let i = 0; i < count; i++) {
+        const geom = geometries[Math.floor(Math.random() * geometries.length)];
+        const mat = materials[Math.floor(Math.random() * materials.length)];
+        const mesh = new THREE.Mesh(geom, mat);
+
+        // Posições aleatórias num espaço tridimensional
+        mesh.position.x = (Math.random() - 0.5) * 60;
+        mesh.position.y = (Math.random() - 0.5) * 60;
+        mesh.position.z = (Math.random() - 0.5) * 40 - 10;
+
+        // Escala aleatória
+        const scale = Math.random() * 0.7 + 0.5;
+        mesh.scale.set(scale, scale, scale);
+
+        // Rotação inicial
+        mesh.rotation.x = Math.random() * Math.PI;
+        mesh.rotation.y = Math.random() * Math.PI;
+
+        objectsGroup.add(mesh);
+
+        // Guardar dados de velocidade individual
+        objectsData.push({
+            mesh: mesh,
+            rotSpeedX: (Math.random() - 0.5) * 0.015,
+            rotSpeedY: (Math.random() - 0.5) * 0.015,
+            floatSpeedY: Math.random() * 0.008 + 0.003,
+            floatOffset: Math.random() * Math.PI * 2,
+            initialY: mesh.position.y
+        });
+    }
+    scene.add(objectsGroup);
+
+    // Interação com Mouse e Scroll (Parallax)
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.0008;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.0008;
+    });
+
+    let scrollY = 0;
+    window.addEventListener('scroll', () => {
+        scrollY = window.scrollY * 0.01;
+    });
+
+    // Loop de Animação
+    const clock = new THREE.Clock();
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const elapsedTime = clock.getElapsedTime();
+
+        // Interpolação suave do movimento do mouse (lerp)
+        targetX += (mouseX - targetX) * 0.05;
+        targetY += (mouseY - targetY) * 0.05;
+
+        // Rotação sutil da câmera/grupo
+        objectsGroup.rotation.y = targetX + Math.sin(elapsedTime * 0.1) * 0.1;
+        objectsGroup.rotation.x = targetY + Math.cos(elapsedTime * 0.1) * 0.1;
+
+        // Movimento individual de cada objeto (flutuação + rotação)
+        objectsData.forEach(item => {
+            item.mesh.rotation.x += item.rotSpeedX;
+            item.mesh.rotation.y += item.rotSpeedY;
+
+            // Movimento senoidal de flutuação vertical
+            item.mesh.position.y = item.initialY + Math.sin(elapsedTime * 1.5 + item.floatOffset) * 1.5 - (scrollY * 0.5);
+        });
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Responsividade ao redimensionar a janela
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
